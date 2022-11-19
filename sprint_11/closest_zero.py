@@ -30,13 +30,18 @@ def get_zero_indexes(arr):
 
 
 def get_min_zero_range(zeroes, index):
-    for i in range(0, len(zeroes)):
-        if zeroes[i] < index and i != len(zeroes) - 1:
-            return min(index - zeroes[i], abs(index - zeroes[i + 1]))
-        elif zeroes[i] < index and i == len(zeroes) - 1:
-            return index - zeroes[i]
+    if len(zeroes) == 1:
+        return abs(zeroes[0] - index)
 
-    return zeroes[0] - index
+    for i in range(0, len(zeroes) - 1):
+        if index < zeroes[i]:
+            return zeroes[i] - index
+        elif zeroes[i] < index < zeroes[i + 1]:
+            return min(index - zeroes[i], zeroes[i + 1] - index)
+
+    return abs(zeroes[-1] - index)
+    # [98, 0, 10, 77, 0, 59, 28, 0, 94]
+    # [1, 4, 7]
 
 
 def get_zero_range(arr, size):
