@@ -16,7 +16,7 @@ logger.addHandler(handler)
 def main():
     size = int(sys.stdin.readline())
     arr = list(map(int, sys.stdin.readline().split(' ')))
-    print(get_zero_range(arr, size))
+    print(' '.join(map(str, get_zero_range(arr, size))))
 
 
 def get_zero_indexes(arr):
@@ -34,7 +34,9 @@ def get_min_zero_range(zeroes, index):
         if zeroes[i] < index and i != len(zeroes) - 1:
             return min(index - zeroes[i], abs(index - zeroes[i + 1]))
         elif zeroes[i] < index and i == len(zeroes) - 1:
-            return index-zeroes[i]
+            return index - zeroes[i]
+
+    return zeroes[0] - index
 
 
 def get_zero_range(arr, size):
@@ -49,5 +51,3 @@ def get_zero_range(arr, size):
 
 if __name__ == '__main__':
     main()
-    arr = [0, 1, 3, 0, 2, 4, 5, 9, 0]
-
