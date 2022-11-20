@@ -56,8 +56,10 @@ def get_scores(field: str, fingers_count: int) -> int:
 
     Algorithm:
     1. If count of digit at field is less or equal to fingers_count players
-    can push every button and earn 1 score -- update counter.
+       can push every button and earn 1 score -- update counter.
+
     2. Do step #1 for every digit.
+
     3. Return scores.
     """
     scores = 0
