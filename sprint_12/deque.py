@@ -59,7 +59,7 @@ pop_back        |               |
 ----------------+---------------+
 """
 import sys
-from typing import Any, List, Tuple
+from typing import Any, List, Optional, Tuple
 
 
 class Deque:
@@ -68,11 +68,19 @@ class Deque:
     or pop item from there, check for emptiness or fullness. Every operation
     takes O(1) complexity.
 
-    Attributes
-      * head     |    int    | index of current head
-      * max_size |    int    | max count of items
-      * tail     |    int    | index of current tail
-      * items    | list[Any] | storage of items
+      Attributes     types            meaning           access
+      * head     |    int    | index of current head | protected |
+      * max_size |    int    | max count of items    | protected |
+      * tail     |    int    | index of current tail | protected |
+      * items    | list[Any] | storage of items      | protected |
+
+      Methods        return    access
+      * is_empty   |  bool  | protected |
+      * is_full    |  bool  | protected |
+      * push_back  |  None  | public    |
+      * push_front |  None  | public    |
+      * pop_back   |  None  | public    |
+      * pop_front  |  None  | public    |
 
     Implementation:
       * At start list of given size is filled with None values.
@@ -80,25 +88,23 @@ class Deque:
       * Head and tail store indexes of current values (not next None-value).
 
       * push_back:
-          - If the deque is full return False as the operation status.
+          - If the deque is full raises DequeOverflowException.
           - If deque is empty, first element must be head and tail at the same
             time that means tail is not changing. Else tail index is moving by
             '-1' (by modulo the size, so it walks around the list in a circle).
           - Set item at current tail index at list.
           - Change size to '+1'.
-          - Return True as the operation status.
 
       * push_front:
-          - If the deque is full return False as the operation status.
+          - If the deque is full raises DequeOverflowException.
           - If deque is empty, first element must be head and tail at the same
             time that means head is not changing. Else head index is moving by
             '+1' (by modulo the size, so it walks around the list in a circle).
           - Set item at current head index at list.
           - Change size to '+1'.
-          - Return True as the operation status.
 
       * pop_back:
-          - If the deque is empty return None.
+          - If the deque is empty raises DequeEmptyException.
           - Change size to '-1'.
           - Store item value at current tail index.
           - If the deque is still has size > 0 tail index have to be moved by
@@ -107,7 +113,7 @@ class Deque:
             None at list, but there's no ways to get that.
 
       * pop_front:
-          - If the deque is empty return None.
+          - If the deque is empty raises DequeEmptyException.
           - Change size to '-1'.
           - Store item value at current tail index.
           - If the deque is still has size > 0 head index have to be moved by
@@ -119,103 +125,120 @@ class Deque:
         """
         Initalize deque object.
         Required params: max_size -- int, max count of items at object.
-        Returns None.
         """
-        self.items = [None] * max_size
-        self.max_size = max_size
-        self.size = self.head = self.tail = 0
+        self.__items = [None] * max_size
+        self.__max_size = max_size
+        self.__size = self.__head = self.__tail = 0
 
-    def is_empty(self) -> bool:
+    def __is_empty(self) -> bool:
         """Is the deque empty? Returns bool variable."""
-        return self.size == 0
+        return self.__size == 0
 
-    def is_full(self) -> bool:
+    def __is_full(self) -> bool:
         """Is the deque full? Returns bool variable."""
-        return self.size == self.max_size
+        return self.__size == self.__max_size
 
     def pop_back(self) -> Any:
         """
         Delete item from back of the deque and return it.
-        Returns None if deque is empty, else returns item.
+        Raises DequeEmptyException if deque is empty.
+        Returns item of any type.
         """
-        if self.is_empty():
-            return None
+        if self.__is_empty():
+            raise DequeEmptyException(
+                'The queue was empty at the time the item was retrieved!'
+            )
 
-        self.size -= 1
-        item = self.items[self.tail]
-        if not self.is_empty():
-            self.tail = (self.tail + 1) % self.max_size
+        self.__size -= 1
+        item = self.__items[self.__tail]
+        if not self.__is_empty():
+            self.__tail = (self.__tail + 1) % self.__max_size
 
         return item
 
     def pop_front(self) -> Any:
         """
         Delete item from front of the deque and return it.
-        Returns None if deque is empty, else returns item.
+        Raises DequeEmptyException if deque is empty.
+        Returns item of any type.
         """
-        if self.is_empty():
-            return None
+        if self.__is_empty():
+            raise DequeEmptyException(
+                'The queue was empty at the time the item was retrieved!'
+            )
 
-        self.size -= 1
-        item = self.items[self.head]
-        if not self.is_empty():
-            self.head = (self.head - 1) % self.max_size
+        self.__size -= 1
+        item = self.__items[self.__head]
+        if not self.__is_empty():
+            self.__head = (self.__head - 1) % self.__max_size
 
         return item
 
-    def push_back(self, item: Any) -> bool:
+    def push_back(self, item: Any) -> None:
         """
         Push item into back of the deque.
         Required params: item -- Any, item to be stored.
-        Returns bool variable as the opertaion status.
+        Raises DequeOverflowException if deque is full.
+        Returns None.
         """
-        if self.is_full():
-            return False
+        if self.__is_full():
+            raise DequeOverflowException('Deque is already full!')
 
-        if not self.is_empty():
-            self.tail = (self.tail - 1) % self.max_size
+        if not self.__is_empty():
+            self.__tail = (self.__tail - 1) % self.__max_size
 
-        self.items[self.tail] = item
-        self.size += 1
-        return True
+        self.__items[self.__tail] = item
+        self.__size += 1
 
-    def push_front(self, item: Any) -> bool:
+    def push_front(self, item: Any) -> None:
         """
         Push item into front of the deque.
         Required params: item -- Any, item to be stored.
-        Returns bool variable as the opertaion status.
+        Raises DequeOverflowException if deque is full.
+        Returns None.
         """
-        if self.is_full():
-            return False
+        if self.__is_full():
+            raise DequeOverflowException('Deque is already full!')
 
-        if not self.is_empty():
-            self.head = (self.head + 1) % self.max_size
+        if not self.__is_empty():
+            self.__head = (self.__head + 1) % self.__max_size
 
-        self.items[self.head] = item
-        self.size += 1
-        return True
+        self.__items[self.__head] = item
+        self.__size += 1
 
 
-def get_solution(max_size: int, commands: List[List[str]]) -> None:
+class DequeEmptyException(Exception):
+    """Use it if the user tried to pop an item from an empty deque."""
+    pass
+
+
+class DequeOverflowException(Exception):
+    """Use it if the user tried to push an item into an filled deque."""
+    pass
+
+
+def get_command_result(command: List[str], deque: Deque) -> Optional[str]:
+    cmd, *args = command
+    func = getattr(deque, cmd)
+
+    return func(*args)
+
+
+def get_commands_res(commands: List[List[str]], max_size: int) -> str:
     """
     Get solution to the problem.
     Required params:
+      commands -- list[list[str]], commands to operate deque.
       max_size -- int, max count of items at deque
-      commands -- list[str], commands to operate deque.
-    Returns None.
+    Returns generator that processes commands in turn.
     """
     deque = Deque(max_size)
     for command in commands:
-        if command[0] == 'pop_back':
-            sys.stdout.write(deque.pop_back() or 'error')
-        elif command[0] == 'pop_front':
-            sys.stdout.write(deque.pop_front() or 'error')
-        elif command[0] == 'push_back':
-            if not deque.push_back(command[-1]):
-                sys.stdout.write('error')
-        else:
-            if not deque.push_front(command[-1]):
-                sys.stdout.write('error')
+        try:
+            if res := get_command_result(command=command, deque=deque):
+                yield res
+        except (DequeEmptyException, DequeOverflowException):
+            yield 'error'
 
 
 def input_data() -> Tuple[int, List[List[str]]]:
@@ -227,7 +250,7 @@ def input_data() -> Tuple[int, List[List[str]]]:
     commands_count = int(sys.stdin.readline())
     max_size = int(sys.stdin.readline())
     commands = []
-    for _ in range(0, commands_count):
+    for _ in range(commands_count):
         commands.append(sys.stdin.readline().strip().split(' '))
 
     return max_size, commands
@@ -242,7 +265,8 @@ def main() -> None:
     size: int
     cmds: List[List[str]]
     size, cmds = input_data()
-    get_solution(max_size=size, commands=cmds)
+    for command_res in get_commands_res(commands=cmds, max_size=size):
+        sys.stdout.write(command_res + '\n')
 
 
 if __name__ == '__main__':
