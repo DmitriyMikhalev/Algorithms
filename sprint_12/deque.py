@@ -243,7 +243,7 @@ def get_commands_res(commands: List[List[str]], max_size: int) -> str:
 
 def input_data(stream=sys.stdin) -> Tuple[int, List[List[str]]]:
     """
-    Read data from the given stream (by default is sys.stdout).
+    Read data from the given stream (by default is sys.stdin).
     Returns tuple of 2 items: first line converted to int and list of splited
     by space into list lines, for example:
       (1, [
