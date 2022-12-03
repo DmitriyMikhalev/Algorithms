@@ -241,17 +241,27 @@ def get_commands_res(commands: List[List[str]], max_size: int) -> str:
             yield 'error'
 
 
-def input_data() -> Tuple[int, List[List[str]]]:
+def input_data(stream=sys.stdin) -> Tuple[int, List[List[str]]]:
     """
-    Read data from stdin stream.
-    Returns a tuple with size of deque and list of commands (also stored at
-    list) to operate it.
+    Read data from the given stream (by default is sys.stdout).
+    Returns tuple of 2 items: first line converted to int and list of splited
+    by space into list lines, for example:
+      (1, [
+          ['line_1', '1'],
+          ['line_2'],
+          ['line_3', '5', 'asdasdsa', 'None', '0'],
+          ...
+      ])
     """
-    commands_count = int(sys.stdin.readline())
-    max_size = int(sys.stdin.readline())
+    if isinstance(stream, str):
+        stream = open(encoding='utf-8', file=stream, mode='r')
+
+    commands_count = int(stream.readline())
+    max_size = int(stream.readline())
     commands = []
     for _ in range(commands_count):
-        commands.append(sys.stdin.readline().strip().split(' '))
+        commands.append(stream.readline().strip().split(' '))
+    stream.close()
 
     return max_size, commands
 
@@ -266,7 +276,19 @@ def main() -> None:
     cmds: List[List[str]]
     size, cmds = input_data()
     for command_res in get_commands_res(commands=cmds, max_size=size):
-        sys.stdout.write(command_res + '\n')
+        output_data(data=command_res)
+
+
+def output_data(data, stream=sys.stdout) -> None:
+    """
+    Write data and '\n' char into given stream (by default is sys.stdout).
+    Required params: data -- str, data to be written.
+    Returns None.
+    """
+    if isinstance(stream, str):
+        stream = open(encoding='utf-8', file=stream, mode='w')
+
+    stream.write(data + '\n')
 
 
 if __name__ == '__main__':

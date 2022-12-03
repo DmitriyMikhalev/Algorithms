@@ -51,7 +51,7 @@ Sample input  | Sample output |
 --------------+---------------+
 """
 import sys
-from typing import Union
+from typing import List, Union
 
 
 class Node:
@@ -71,31 +71,36 @@ class Stack:
     deletde is head.
     """
     def __init__(self) -> None:
-        self.size = 0
-        self.top = None
+        self.__size = 0
+        self.__top = None
 
-    def is_empty(self) -> bool:
+    def __is_empty(self) -> bool:
         """Check size is equal to 0. Returns bool answer."""
-        return self.size == 0
+        return self.__size == 0
 
-    def peek(self) -> Union[None, str, int]:
+    def peek(self) -> Union[str, int]:
         """
-        Returns None if stack is empty else returns value from top node (str or
-        int) and delete that node.
+        Get a top item from the stack.
+        Raises StackEmptyException if it was empty when user tried to get.
+        Returns value from top node.
         """
-        return None if self.top is None else self.top.value
+        if self.__is_empty():
+            raise StackEmptyException('Stack was empty!')
 
-    def pop(self) -> Union[None, str, int]:
-        """
-        Returns None if stack is empty else returns value from top node (str or
-        int) and delete this.
-        """
-        if self.is_empty():
-            return None
+        return self.__top.value
 
-        self.size -= 1
-        first_elem = self.top
-        self.top = self.top.next_node
+    def pop(self) -> Union[str, int]:
+        """
+        Get and delete a top item from the stack.
+        Raises StackEmptyException if it was empty when user tried to delete.
+        Returns value from top node and delete this.
+        """
+        if self.__is_empty():
+            raise StackEmptyException('Stack was empty!')
+
+        self.__size -= 1
+        first_elem = self.__top
+        self.__top = self.__top.next_node
         first_elem.next_node = None
 
         return first_elem.value
@@ -106,11 +111,16 @@ class Stack:
         Required params: item -- str or int variable.
         Returns None.
         """
-        self.top = Node(value=item, next_node=self.top)
-        self.size += 1
+        self.__top = Node(value=item, next_node=self.__top)
+        self.__size += 1
 
 
-def calculate(expression: list[Union[int, str]]) -> int:
+class StackEmptyException(Exception):
+    """Use it if the user tried to pop or peek an item from an empty stack."""
+    pass
+
+
+def calculate(expression: List[Union[int, str]]) -> int:
     """
     Get result of expression given in reverse poland notation.
     Required params: expression - list of int or str variables, where int is
@@ -122,6 +132,11 @@ def calculate(expression: list[Union[int, str]]) -> int:
          stack, else (element is operation) get 2 last numbers from stack and
          transform them using current operation, add result into stack.
       3. Return first element from stack.
+
+    >>> calculate([2, 1, '+', 3, '*'])
+    9
+    >>> calculate([7, 2, '+', 4, '*', 2, '+'])
+    38
     """
     operations = {
         '*': lambda x, y: x * y,
@@ -141,15 +156,32 @@ def calculate(expression: list[Union[int, str]]) -> int:
     return stack.pop()
 
 
-def input_data() -> list[str]:
+def input_data(stream=sys.stdin) -> List[str]:
     """
     Get data from stdin stream. Returns list of str variables splited by space.
     """
-    return sys.stdin.readline().strip().split(' ')
+    if isinstance(stream, str):
+        stream = open(encoding='utf-8', file=stream, mode='r')
+    data = stream.readline().strip().split(' ')
+    stream.close()
+
+    return data
 
 
 def is_number(string) -> bool:
-    """Check if given str variable is number. Returns bool answer."""
+    """
+    Check if given str variable is number.
+    Returns bool answer.
+
+    >>> is_number('123')
+    True
+    >>> is_number('-12')
+    True
+    >>> is_number('1f')
+    False
+    >>> is_number('string')
+    False
+    """
     return string.isdigit() or string[1:].isdigit() and string[0] == '-'
 
 
@@ -159,18 +191,42 @@ def main() -> None:
     receive a solution to the problem into output.
     Returns None.
     """
-    data: list[str] = input_data()
-    expression: list[Union[str, int]] = prepare_data(data)
-    res = calculate(expression)
-    sys.stdout.write(str(res))
+    data: List[str] = input_data()
+    expression: List[Union[str, int]] = prepare_data(data)
+    try:
+        res = calculate(expression)
+        output_data(str(res))
+    except StackEmptyException as e:
+        output_data(str(e))
 
 
-def prepare_data(data: list[str]) -> list[Union[str, int]]:
+def output_data(data, stream=sys.stdout) -> None:
+    """
+    Write data into given stream (by default is sys.stdout).
+    Required params: data -- str, data to be written.
+    Returns None.
+    """
+    if isinstance(stream, str):
+        stream = open(encoding='utf-8', file=stream, mode='w')
+
+    stream.write(data)
+
+
+def prepare_data(data: List[str]) -> List[Union[str, int]]:
     """
     Get prepared data.
     Required params: data -- list of str variables.
     Returns new list (with str and int variables) with same elements but they
     were casted to int if it was possible.
+
+    >>> prepare_data(['13', '7', '-'])
+    [13, 7, '-']
+    >>> prepare_data(['13', '7'])
+    [13, 7]
+    >>> prepare_data(['/', '+', '-'])
+    ['/', '+', '-']
+    >>> prepare_data([])
+    []
     """
     return [i for i in map(lambda x: int(x) if is_number(x) else x, data)]
 
