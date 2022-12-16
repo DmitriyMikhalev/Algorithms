@@ -72,20 +72,42 @@ Algorithm:
 
 ===============================================================================
 """
-
 import random
 import sys
-from typing import List, Optional, Tuple
-
-TASKS = 0
-NEGATIVE_POINTS = 1
-LOGIN = 2
+from typing import List, Optional
 
 
-def input_data(stream=sys.stdin) -> List[Tuple[int, int, str]]:
+class Person:
+    """Defines member of the competition. Supports '>' and '<' operations."""
+    def __init__(self, login: str, tasks: str, negative_scores: str) -> None:
+        """
+        Initalize the object.
+        Required params:
+            - login -- str, person's login
+            - tasks -- str, amount of tasks or stages person has passed.
+            - negative_scores -- str, amount of penalty scores.
+
+        Attribute 'value' is 'cost' of object stored at tuple.
+        """
+        self.login = login
+        self.tasks = int(tasks)
+        self.negative_scores = int(negative_scores)
+        self.__value = (-1 * self.tasks, self.negative_scores, self.login)
+
+    def __gt__(self, other: 'Person') -> bool:
+        return self.__value > other.__value
+
+    def __lt__(self, other: 'Person') -> bool:
+        return self.__value < other.__value
+
+    def __str__(self) -> str:
+        return self.login + '\n'
+
+
+def input_data(stream=sys.stdin) -> List[Person]:
     """
     Read data from the given stream (by default is sys.stdin).
-    Returns list of tuples.
+    Returns list of Person's objects.
     """
     if isinstance(stream, str):
         stream = open(encoding='utf-8', file=stream, mode='r')
@@ -94,11 +116,7 @@ def input_data(stream=sys.stdin) -> List[Tuple[int, int, str]]:
     persons = []
     for _ in range(persons_count):
         line: List[str] = stream.readline().strip().split(' ')
-        line = (
-            -1 * int(line[1]),
-            int(line[2]),
-            line[0]
-        )
+        line = Person(*line)
         persons.append(line)
     stream.close()
 
@@ -111,25 +129,22 @@ def main() -> None:
     receive a solution to the problem into output.
     Returns None.
     """
-    persons: List[Tuple[int, int, str]] = input_data()
-    quick_sort(
-        array=persons,
-        key=lambda x: (x[TASKS], x[NEGATIVE_POINTS], x[LOGIN])
-    )
+    persons: List[Person] = input_data()
+    quick_sort(array=persons)
     output_data(data=persons)
 
 
 def output_data(data, stream=sys.stdout) -> None:
     """
     Write data into given stream (by default is sys.stdout).
-    Required params: data -- list[tuples()], data to be written.
+    Required params: data -- list, data to be written.
     Returns None.
     """
     if isinstance(stream, str):
         stream = open(encoding='utf-8', file=stream, mode='w')
 
     for i in data:
-        stream.write(i[LOGIN] + '\n')
+        stream.write(str(i))
 
 
 def quick_sort(
